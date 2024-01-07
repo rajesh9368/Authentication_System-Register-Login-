@@ -2,7 +2,9 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.contrib.auth import authenticate,login
+from django.contrib.auth import authenticate,login,logout
+from LR_System import settings
+from django.core.mail import send_mail
 # Create your views here.
 def home(request):
     return render(request,"authentication/index.html")
@@ -14,11 +16,38 @@ def signup(request):
         email = request.POST['email']
         pass1 = request.POST['pass1']
         pass2 = request.POST['pass2']
+        
+        
+        if User.objects.filter(username=username):
+            messages.error(request,"Username Already existes! try another one")
+            return redirect('home')
+        
+        # if User.objects.filter(email=email):
+        #     messages.error(request,"Email already exists")
+        #     return redirect('home')
+        if(len(username)>10):
+            messages.error(request,"Username must be under ten characters")
+        if(pass1 != pass2):
+            messages.error(request,"Passwords didn't match")
+            if not username.isalnum():
+                messages.error(request,"Username must be alphanumeric")
+                return redirect('home')
+            
+            
         myuser = User.objects.create_user(username,email,pass1)
         myuser.first_name = fname
         myuser.last_name = lname
         myuser.save()
-        messages.success(request,"Your Account has been successfully created.")
+        messages.success(request,"Your Account has been successfully created. we have sent you a confirmation email in order to ativate your account")
+        
+        
+        
+        
+        subject = "Welcome to GFG - Django Login!!"
+        message="Hello"+myuser.first_name+"!!/n"+"WElcome to GFG?? \n Thank you for visiting our website \n we have also sent you a confirmation email,please confirm your email address in order to activate your account. \n\n Thanking you"
+        from_email = settings.EMAIL_HOST_USER
+        to_list = [myuser.email]
+        send_mail(subject,message,from_email,to_list,fail_silently = True)
         return redirect('signin')
     return render(request,"authentication/signup.html")
 
@@ -39,4 +68,6 @@ def signin(request):
     return render(request,"authentication/signin.html")
 
 def signout(request):
-    pass
+    logout(request)
+    messages.success(request,"Logged Out Successfully!")
+    return redirect('home')
