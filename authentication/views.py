@@ -47,7 +47,7 @@ def signup(request):
         message="Hello"+myuser.first_name+"!!/n"+"WElcome to GFG?? \n Thank you for visiting our website \n we have also sent you a confirmation email,please confirm your email address in order to activate your account. \n\n Thanking you"
         from_email = settings.EMAIL_HOST_USER
         to_list = [myuser.email]
-        send_mail(subject,message,from_email,to_list,fail_silently = True)
+        send_mail(subject,message,from_email,to_list,fail_silently = False)
         return redirect('signin')
     return render(request,"authentication/signup.html")
 
